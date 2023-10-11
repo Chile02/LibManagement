@@ -1,0 +1,34 @@
+﻿@model FrindlyBot_LiB.Models.Reservations
+
+@{
+    ViewData["Title"] = "MakeReservation";
+}
+
+<h4>Make Rersevations</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="MakeReservation">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="StartDate"  class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="endDate" class="control-label"></label>
+                <input asp-for="endDate" class="form-control" />
+                <span asp-validation-for="endDate" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Make Reservation" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+<br />
+<div>
+    <a asp-action="Browse">Back to List</a>
+</div>
+

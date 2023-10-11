@@ -1,0 +1,56 @@
+﻿@model FrindlyBot_LiB.Models.Reservations
+
+@{
+    ViewData["Title"] = "Approve";
+}
+
+
+
+<h4>Approve Reservations</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Approve">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="ReservationID" />
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BookID" class="control-label"></label>
+                <input asp-for="BookID" class="form-control" />
+                <span asp-validation-for="BookID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="endDate" class="control-label"></label>
+                <input asp-for="endDate" class="form-control" />
+                <span asp-validation-for="endDate" class="text-danger"></span>
+            </div>
+            <br />
+            <div class="input-group mb-3">
+                <select asp-for="Status" class="form-select" id="inputGroupSelect03" aria-label="Example select with button addon">
+                    <option asp-for="Status" selected>Pending</option>
+                    <option asp-for="Status" value="Approved">Approved</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Confirm" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

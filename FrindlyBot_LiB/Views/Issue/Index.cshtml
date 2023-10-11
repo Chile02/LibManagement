@@ -1,0 +1,66 @@
+﻿@model IEnumerable<FrindlyBot_LiB.Models.Issued>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <h2>Issued Reservations</h2>
+        <form asp-action="Index">
+            <div class="input-group md-form form-sm form-2 pl-0">
+                <input name="Wmail" class="form-control my-0 py-1 red-border" type="text" placeholder="Search" />
+                <button class="btn btn-outline-success" id="basic-text1" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+</nav>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                <label>ReservationID</label>
+@*                 @Html.DisplayNameFor(model => model.BookId) *@
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IssueDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReturnDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Penalty)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BookId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IssueDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReturnDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Penalty)
+            </td>
+            <td>
+                <a asp-action="Return" asp-route-id="@item.IssueID">Return</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,0 +1,64 @@
+﻿@model IEnumerable<FrindlyBot_LiB.Models.Reservations>
+@{
+    ViewData["Title"] = "Pending";
+}
+
+<h2>Pending Reservation</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.BookID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.endDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BookID)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.endDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+
+                <a asp-action="Decline" asp-route-id="@item.ReservationID">Decline</a> |
+                <a asp-action="Approve" asp-route-id="@item.ReservationID">Approve</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+@section scripts{
+    <script>
+        $(function () {
+            $("#basic-text1").click(function () {
+                $("form").submit();
+            })
+        })
+    </script>
+}
