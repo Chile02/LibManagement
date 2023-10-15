@@ -29,11 +29,20 @@ namespace FrindlyBot_LiB.Controllers
         }
 
         // GET: Issue
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string Wmail)
         {
-            return _context.Books != null ?
-                        View(await _context.Issued.ToListAsync()) :
-                        Problem("Entity set 'ApplicationDbContext.Issue'  is null.");
+            if (String.IsNullOrEmpty(Wmail))
+            {
+                var dataContext = _context.Issued.OrderBy(c => c.ReturnDate);
+                return View(await dataContext.ToListAsync());
+            }
+            else
+            {
+                var searchItems = await _context.Issued.Where(s => s.Email.Contains(Wmail)).ToListAsync();
+                return View(searchItems);
+
+
+            }
         }
 
        

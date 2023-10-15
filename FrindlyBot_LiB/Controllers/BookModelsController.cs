@@ -73,7 +73,7 @@ namespace FrindlyBot_LiB.Controllers
                     await model.ImagePath.CopyToAsync(stream);
                 }
 
-                // Save the file path and other information to the database.
+          
                 var uploaded = new BookModel()
                 {
                     Title = model.Title,
@@ -92,145 +92,159 @@ namespace FrindlyBot_LiB.Controllers
             return View(model);
         }
 
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var uploadedImage = _context.Books.Find(id);
 
-            if (uploadedImage == null)
+
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null || _context.Books == null)
             {
                 return NotFound();
             }
 
-            var imageModel = new BookModel
+            var book = await _context.Books.FindAsync(id);
+            if (book == null)
             {
-                BookID = uploadedImage.BookID,
-                Title = uploadedImage.Title,
-                Description = uploadedImage.Description,
-                Quantity = uploadedImage.Quantity,
-                Author = uploadedImage.Author
-            };
-
-            return View(imageModel);
+                return NotFound();
+            }
+            return View(book);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(BookModel model)
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, BookModel model)
         {
+            if (id != model.BookID)
+            {
+                return NotFound();
+            }
+
             if (ModelState.IsValid)
             {
-                var uploadedImage = _context.Books.Find(model.BookID);
+                var existingBook = await _context.Books.FindAsync(id);
 
-                if (uploadedImage == null)
+                if (existingBook == null)
                 {
                     return NotFound();
                 }
+                existingBook.BookID = model.BookID;
+                existingBook.Title = model.Title;
+                existingBook.Description = model.Description;
+                existingBook.Quantity = model.Quantity;
+                existingBook.Author = model.Author;
 
-                
-                uploadedImage.Title = uploadedImage.Title;
-                uploadedImage.Description = uploadedImage.Description;
-                uploadedImage.Quantity = uploadedImage.Quantity;
-                uploadedImage.Author = uploadedImage.Author;
-            
-
+                // Check if a new book cover image is provided
                 if (model.ImagePath != null && model.ImagePath.Length > 0)
                 {
-
                     var fileName = Path.GetFileName(model.ImagePath.FileName);
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
+                    var filePath = Path.Combine("wwwroot", "images", fileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await model.ImagePath.CopyToAsync(stream);
                     }
 
-
-                    uploadedImage.BookCover = filePath;
+                    // Update the book cover image file name
+                    existingBook.BookCover = fileName;
+                    //model.BookCover = fileName;
                 }
 
-                _context.Update(uploadedImage);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction("Index");
+                try
+                {
+                    _context.Update(existingBook);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!BookModelExists(existingBook.BookID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
             }
-
-            // If the model state is not valid, return to the edit form with validation errors.
             return View(model);
         }
 
-        /*
-                [Authorize(Roles = "Admin")]
-                public async Task<IActionResult> Edit(int? id)
+
+
+
+        /*       [Authorize(Roles = "Admin")]
+                [HttpGet]
+                public IActionResult Edit(int id)
                 {
-                    if (id == null || _context.Books == null)
+                    var uploadedImage = _context.Books.Find(id);
+
+                    if (uploadedImage == null)
                     {
                         return NotFound();
                     }
 
-                    var bookModel = await _context.Books.FindAsync(id);
-                    if (bookModel == null)
-                    {
-                        return NotFound();
-                    }
-                    return View(bookModel);
+                    return View(uploadedImage);
                 }
 
 
-                [Authorize(Roles = "Admin")]
-                [HttpPost]
-                [ValidateAntiForgeryToken]
-                public async Task<IActionResult> Edit(int id, [Bind("BookID,Title,Author,Description,Quantity,BookCover")] BookModel model)
-                {
-                    if (id != model.BookID)
-                    {
-                        return NotFound();
-                    }
 
-                    if (ModelState.IsValid)
-                    {
-                        try
-                        {
 
-                            var fileName = Path.GetFileName(model.ImagePath.FileName);
-                            var filePath = Path.Combine("wwwroot", "images", fileName);
 
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+
+                 [Authorize(Roles = "Admin")]
+                 [HttpPost]
+                 public async Task<IActionResult> Edit(BookModel model)
+                 {
+                     if (ModelState.IsValid)
+                     {
+                         var uploadedImage = _context.Books.Find(model.BookID);
+
+                         if (uploadedImage == null)
+                         {
+                             return NotFound();
+                         }
+
+
+                         if (model.ImagePath != null && model.ImagePath.Length > 0)
+                         {
+
+                             var fileName = Path.GetFileName(model.ImagePath.FileName);
+                             var filePath = Path.Combine("wwwroot", "images", fileName);
+
+                             using (var stream = new FileStream(filePath, FileMode.Create))
+                             {
+                                 await model.ImagePath.CopyToAsync(stream);
+                             }
+
+                           *//* var uploaded = new BookModel()
                             {
-                                await model.ImagePath.CopyToAsync(stream);
-                            }
-
-                            // Save the file path and other information to the database.
-                            var uploaded = new BookModel()
-                            {
-                                Title = model.Title,
-                                Description = model.Description,
-                                Quantity = model.Quantity,
-                                Author = model.Author,
+                                BookID = model.BookID,
+                                Title = uploadedImage.Title,
+                                Description = uploadedImage.Description,
+                                Quantity = uploadedImage.Quantity,
+                                Author = uploadedImage.Author,
                                 BookCover = fileName
-                            };
+                            };*//*
 
-                            _context.Update(model);
-                            await _context.SaveChangesAsync();
+                            model.BookCover = fileName;
                         }
-                        catch (DbUpdateConcurrencyException)
-                        {
-                            if (!BookModelExists(model.BookID))
-                            {
-                                return NotFound();
-                            }
-                            else
-                            {
-                                throw;
-                            }
-                        }
-                        return RedirectToAction(nameof(Index));
-                    }
-                    return View(model);
-                }*/
+                        _context.Update(model);
+                        await _context.SaveChangesAsync();
+
+                        return RedirectToAction("Index");
+
+                     }
+
+
+                     return View(model);
+                 }*/
 
 
 
-        // GET: BookModels/Delete/5
+
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Books == null)
