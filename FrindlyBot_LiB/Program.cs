@@ -55,8 +55,6 @@ else
 }
 
 
-
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

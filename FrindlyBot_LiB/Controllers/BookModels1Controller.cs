@@ -91,14 +91,23 @@ namespace FrindlyBot_LiB.Controllers
             {
                 return NotFound();
             }
-            
 
+            DateTime today = DateTime.Today;
             if (book.Quantity <= 2)
+            {
+
+                return NotFound();
+            }
+            else if (rersevations.StartDate < today)
+            {
+                return NotFound();
+
+            }else if(rersevations.endDate < rersevations.StartDate)
             {
                 return NotFound();
             }
             else
-            {
+            {    
                 var reservation = new Reservations()
                 {
                     Email = username,
@@ -109,6 +118,7 @@ namespace FrindlyBot_LiB.Controllers
                 };
 
                 string AdminEmail = "blessingsMwandira4@gmail.com";
+                
 
                 SendReservationConfirmationEmail(reservation.BookID , username);
                 SendToAdminConfirmationEmail(reservation.Email, reservation.BookID, AdminEmail);

@@ -208,11 +208,37 @@ namespace FrindlyBot_LiB.Controllers
             }
         }
 
-      
+        public async Task PenaltyCalculator(int id,DateTime end)
+        {
+            var issues = await _context.reservations.FirstOrDefaultAsync(m => m.ReservationID == id);
+            var pen = await _context.Issued.FindAsync(issues.ReservationID);
+            DateTime today = DateTime.Now;
+            int penaltyPerDay = 50;
+
+            if(today > end)
+            {
+                TimeSpan numberOfDays = end - today;
+                int finalNumberOfDays = (int)numberOfDays.TotalDays;
+
+                if (finalNumberOfDays < 1)
+                {
+                    pen.Penalty = 0;
+                }
+                else
+                {
+                    int totalPenalty = finalNumberOfDays * penaltyPerDay;
+                    pen.Penalty = totalPenalty;
+                }
+            }
+
+        }
+
         public IActionResult Issue()
         {
             return View();
         }
+
+      
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -246,11 +272,23 @@ namespace FrindlyBot_LiB.Controllers
 
             
             SendCollectionEmailAsync(issueBooks.BookId, issueBooks.ReturnDate, issueBooks.Email);
+            
 
+            if(finaldays < 1)
+            {
+                
+                backgroundJobClient.Schedule(() => SendCollectionEmailAsync(issueBooks.BookId, issueBooks.ReturnDate, issueBooks.Email), DateTime.Now.AddMinutes(10));
+            }
+            else
+            {
+                RecurringJob.AddOrUpdate("myRecurringJob", () => PenaltyCalculator(issues.ReservationID, issues.endDate), Cron.Daily);
+                
+                backgroundJobClient.Schedule(() => SendCollectionEmailAsync(issueBooks.BookId, issueBooks.ReturnDate, issueBooks.Email), DateTime.Now.AddDays(numberOfDays));
+
+            }
             issues.Status = "Issued";
             _context.Add(issueBooks);
             await _context.SaveChangesAsync();
-            backgroundJobClient.Schedule(() => SendCollectionEmailAsync(issueBooks.BookId, issueBooks.ReturnDate, issueBooks.Email), DateTime.Now.AddDays(numberOfDays));
             return RedirectToAction(nameof(Index));
 
         }
