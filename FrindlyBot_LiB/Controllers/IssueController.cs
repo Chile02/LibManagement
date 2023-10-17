@@ -12,6 +12,7 @@ using System.Net.Mail;
 using System.Net;
 using System.Drawing;
 using Hangfire;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FrindlyBot_LiB.Controllers
 {
@@ -28,7 +29,7 @@ namespace FrindlyBot_LiB.Controllers
             _backgroundJobClient = backgroundJobClient;
         }
 
-        // GET: Issue
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string Wmail)
         {
             if (String.IsNullOrEmpty(Wmail))
@@ -45,18 +46,18 @@ namespace FrindlyBot_LiB.Controllers
             }
         }
 
-       
 
-        
 
-    
+
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Return(int? id)
         {
             if (id == null || _context.Issued == null)
             {
                 return NotFound();
             }
-            //var resID = await _context.Books.FindAsync(id);
+     
             var addI = await _context.Books.FindAsync(id);
             
 
@@ -71,7 +72,8 @@ namespace FrindlyBot_LiB.Controllers
             return View(issued);
         }
 
-    
+
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Return")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReturnConfirmed(int id)

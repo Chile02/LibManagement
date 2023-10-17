@@ -6,34 +6,20 @@
 
 <h1>Details</h1>
 
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Author)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Author)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.BookCover)
-        </dt>
-        <dd class="col-sm-10">
-            <img src="~/images/@Html.DisplayFor(model => model.BookCover)" style="width:250px;height:300px" />
-        </dd>
-    </dl>
+
+<div class="card mb-3" style="max-width:700px;">
+    <div class="row g-0">
+        <div class="col-md-4">
+            <img style="max-height:350px;" src="~/images/@Html.DisplayFor(model => model.BookCover)" class="img-fluid rounded-start" alt="Book image">
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">@Html.DisplayFor(model => model.Title)</h5>
+                <p class="card-text">@Html.DisplayFor(model => model.Description)</p>
+                <p class="card-text"><small class="text-body-secondary">@Html.DisplayFor(model => model.Author)</small></p>
+            </div>
+        </div>
+    </div>
 </div>
 <div>
     <a asp-action="Browse">Back to List</a>

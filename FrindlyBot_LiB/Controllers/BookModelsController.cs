@@ -93,7 +93,7 @@ namespace FrindlyBot_LiB.Controllers
         }
 
 
-
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Books == null)
@@ -133,7 +133,7 @@ namespace FrindlyBot_LiB.Controllers
                 existingBook.Quantity = model.Quantity;
                 existingBook.Author = model.Author;
 
-                // Check if a new book cover image is provided
+            
                 if (model.ImagePath != null && model.ImagePath.Length > 0)
                 {
                     var fileName = Path.GetFileName(model.ImagePath.FileName);
@@ -144,9 +144,9 @@ namespace FrindlyBot_LiB.Controllers
                         await model.ImagePath.CopyToAsync(stream);
                     }
 
-                    // Update the book cover image file name
+                   
                     existingBook.BookCover = fileName;
-                    //model.BookCover = fileName;
+                    
                 }
 
                 try
@@ -169,76 +169,6 @@ namespace FrindlyBot_LiB.Controllers
             }
             return View(model);
         }
-
-
-
-
-        /*       [Authorize(Roles = "Admin")]
-                [HttpGet]
-                public IActionResult Edit(int id)
-                {
-                    var uploadedImage = _context.Books.Find(id);
-
-                    if (uploadedImage == null)
-                    {
-                        return NotFound();
-                    }
-
-                    return View(uploadedImage);
-                }
-
-
-
-
-
-
-                 [Authorize(Roles = "Admin")]
-                 [HttpPost]
-                 public async Task<IActionResult> Edit(BookModel model)
-                 {
-                     if (ModelState.IsValid)
-                     {
-                         var uploadedImage = _context.Books.Find(model.BookID);
-
-                         if (uploadedImage == null)
-                         {
-                             return NotFound();
-                         }
-
-
-                         if (model.ImagePath != null && model.ImagePath.Length > 0)
-                         {
-
-                             var fileName = Path.GetFileName(model.ImagePath.FileName);
-                             var filePath = Path.Combine("wwwroot", "images", fileName);
-
-                             using (var stream = new FileStream(filePath, FileMode.Create))
-                             {
-                                 await model.ImagePath.CopyToAsync(stream);
-                             }
-
-                           *//* var uploaded = new BookModel()
-                            {
-                                BookID = model.BookID,
-                                Title = uploadedImage.Title,
-                                Description = uploadedImage.Description,
-                                Quantity = uploadedImage.Quantity,
-                                Author = uploadedImage.Author,
-                                BookCover = fileName
-                            };*//*
-
-                            model.BookCover = fileName;
-                        }
-                        _context.Update(model);
-                        await _context.SaveChangesAsync();
-
-                        return RedirectToAction("Index");
-
-                     }
-
-
-                     return View(model);
-                 }*/
 
 
 

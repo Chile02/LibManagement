@@ -12,6 +12,8 @@ using System.Net.Mail;
 using System.Net;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 using Hangfire;
+using Hangfire.Server;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FrindlyBot_LiB.Controllers
 {
@@ -21,6 +23,7 @@ namespace FrindlyBot_LiB.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IBackgroundJobClient backgroundJobClient;
 
+
         public ReservationsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IBackgroundJobClient backgroundJobClient)
         {
             _context = context;
@@ -28,7 +31,8 @@ namespace FrindlyBot_LiB.Controllers
             this.backgroundJobClient = backgroundJobClient;
         }
 
-       
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string email)
         {
 
@@ -46,26 +50,7 @@ namespace FrindlyBot_LiB.Controllers
 
      
 
-        public IActionResult Create()
-        {
-            return View();
-        }
-
- 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ReservationID,Email,BookID,StartDate,endDate,Status")] Reservations reservations)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(reservations);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(reservations);
-        }
-
-       
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int? id)
         {
             if (id == null || _context.reservations == null)
@@ -84,6 +69,7 @@ namespace FrindlyBot_LiB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id, [Bind("ReservationID,Email,BookID,StartDate,endDate,Status")] Reservations reservations)
         {
             if (id != reservations.ReservationID)
@@ -135,37 +121,9 @@ namespace FrindlyBot_LiB.Controllers
             return View(reservations);
         }
 
-        public async Task SendDeclineEmailAsync(int? id, string recipientEmail)
-        {
-            var smtpClient = new SmtpClient("smtp.gmail.com")
-            {
-                Port = 587,
-                Credentials = new NetworkCredential("chilegaming02@gmail.com", "edio qmmy tlmx rxoy"),
-                EnableSsl = true,
-            };
-            var reservations = await _context.reservations.FirstOrDefaultAsync(m => m.ReservationID == id);
-
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress("chilegaming02@gmail.com"),
-                Subject = "Reservation Decline",
-                Body = $"Due to some none reasons, Your reservation with reservation ID {id} Has been declined.",
-                IsBodyHtml = true,
-            };
-
-            mailMessage.To.Add(recipientEmail);
-
-            try
-            {
-                smtpClient.Send(mailMessage);
-            }
-            catch (Exception ex)
-            {
-
-            }
-        }
 
         [HttpPost, ActionName("Decline")]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeclineConfirmed(int id)
         {
@@ -192,7 +150,8 @@ namespace FrindlyBot_LiB.Controllers
           return (_context.reservations?.Any(e => e.ReservationID == id)).GetValueOrDefault();
         }
 
-  
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Pending(string Email)
         {
 
@@ -207,6 +166,7 @@ namespace FrindlyBot_LiB.Controllers
                 return View(searc);
             }
         }
+
 
         public async Task PenaltyCalculator(int id,DateTime end)
         {
@@ -233,6 +193,7 @@ namespace FrindlyBot_LiB.Controllers
 
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Issue()
         {
             return View();
@@ -241,6 +202,7 @@ namespace FrindlyBot_LiB.Controllers
       
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Issue(int id, [Bind("IssueID,IssueDate,ReturnDate,Penalty")] Issued issueBook)
         {
@@ -282,9 +244,7 @@ namespace FrindlyBot_LiB.Controllers
             else
             {
                 RecurringJob.AddOrUpdate("myRecurringJob", () => PenaltyCalculator(issues.ReservationID, issues.endDate), Cron.Daily);
-                
                 backgroundJobClient.Schedule(() => SendCollectionEmailAsync(issueBooks.BookId, issueBooks.ReturnDate, issueBooks.Email), DateTime.Now.AddDays(numberOfDays));
-
             }
             issues.Status = "Issued";
             _context.Add(issueBooks);
@@ -373,6 +333,88 @@ namespace FrindlyBot_LiB.Controllers
         }
 
 
+
+
+        public async Task<IActionResult> PersonalisedRes(string email)
+        {
+            var username = _userManager.GetUserName(User);
+            if (username == null)
+            {
+                return NotFound();
+            }
+
+            if (String.IsNullOrEmpty(email))
+            {
+                var dataContext = _context.reservations.OrderByDescending(c => c.Status).Where(s => s.Email.Equals(username) && s.Status != "Issued");
+                return View(await dataContext.ToListAsync());
+            }
+            else
+            {
+                var searchItem = await _context.reservations.Where(s => s.Email.Contains(email)).ToListAsync();
+                return View(searchItem);
+            }
+        }
+
+        public async Task SendDeclineEmailAsync(int? id, string recipientEmail)
+        {
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("chilegaming02@gmail.com", "edio qmmy tlmx rxoy"),
+                EnableSsl = true,
+            };
+            var reservations = await _context.reservations.FirstOrDefaultAsync(m => m.ReservationID == id);
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("chilegaming02@gmail.com"),
+                Subject = "Reservation Decline",
+                Body = $"Due to some none reasons, Your reservation with reservation ID {id} Has been declined.",
+                IsBodyHtml = true,
+            };
+
+            mailMessage.To.Add(recipientEmail);
+
+            try
+            {
+                smtpClient.Send(mailMessage);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        public void SendApproveConfirmationEmail(string recipientEmail)
+        {
+            var smtpClient = new SmtpClient("smtp.gmail.com")
+            {
+                Port = 587,
+                Credentials = new NetworkCredential("Chilegaming02@gmail.com", "edio qmmy tlmx rxoy"),
+                EnableSsl = true,
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress("Chilegaming02@gmail.com"),
+                Subject = "Reservation Approved",
+                Body = "Your book reservation has been approved and your book is ready for collection.",
+                IsBodyHtml = true,
+            };
+
+            mailMessage.To.Add(recipientEmail);
+
+            try
+            {
+                smtpClient.Send(mailMessage);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+
         public async Task SendCollectionEmailAsync(int? id, DateTime expected, string recipientEmail)
         {
             var smtpClient = new SmtpClient("smtp.gmail.com")
@@ -402,56 +444,6 @@ namespace FrindlyBot_LiB.Controllers
 
             }
         }
-
-        private void SendApproveConfirmationEmail(string recipientEmail)
-        {
-            var smtpClient = new SmtpClient("smtp.gmail.com")
-            {
-                Port = 587,
-                Credentials = new NetworkCredential("Chilegaming02@gmail.com", "edio qmmy tlmx rxoy"),
-                EnableSsl = true,
-            };
-
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress("Chilegaming02@gmail.com"),
-                Subject = "Reservation Approved",
-                Body = "Your book reservation has been approved and your book is ready for collection.",
-                IsBodyHtml = true,
-            };
-
-            mailMessage.To.Add(recipientEmail);
-
-            try
-            {
-                smtpClient.Send(mailMessage);
-            }
-            catch (Exception ex)
-            {
-
-            }
-        }
-
-        public async Task<IActionResult> PersonalisedRes(string email)
-        {
-            var username = _userManager.GetUserName(User);
-            if (username == null)
-            {
-                return NotFound();
-            }
-
-            if (String.IsNullOrEmpty(email))
-            {
-                var dataContext = _context.reservations.OrderByDescending(c => c.Status).Where(s => s.Email.Equals(username) && s.Status != "Issued");
-                return View(await dataContext.ToListAsync());
-            }
-            else
-            {
-                var searchItem = await _context.reservations.Where(s => s.Email.Contains(email)).ToListAsync();
-                return View(searchItem);
-            }
-        }
-       
     }
 }
     
