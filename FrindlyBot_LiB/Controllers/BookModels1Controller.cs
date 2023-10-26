@@ -24,7 +24,7 @@ namespace FrindlyBot_LiB.Controllers
             _context = context;
             _userManager = userManager;
         }
-        [Authorize(Roles="User")]
+        
 
         // GET: BookModels1
         public async Task<IActionResult> Browse(string Title)
@@ -44,7 +44,7 @@ namespace FrindlyBot_LiB.Controllers
 
         }
 
-        [Authorize(Roles = "User")]
+        
         public async Task<IActionResult> ViewBook(int id)
         {
             if (id == null || _context.Books == null)

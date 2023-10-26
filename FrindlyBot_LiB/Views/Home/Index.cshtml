@@ -1,7 +1,92 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<FrindlyBot_LiB.Models.BookModel>
+
+@{
+    ViewData["Title"] = "Browse";
 }
 
-<div class="text-center">
-    <h2 class="display-4">Welcome</h2>
-</div>
+@if (!User.IsInRole("User") && !User.IsInRole("Admin"))
+{
+    <div class="text-center">
+        <h1 class="display-4">Welcome</h1>
+
+    </div>
+}
+
+@if (User.IsInRole("User"))
+{
+    @if (TempData["ReservationSuccessMessage"] != null)
+    {
+        <div id="reservation-success-alert" class="alert alert-success">
+            @TempData["ReservationSuccessMessage"]
+        </div>
+        <script>
+            $(document).ready(function () {
+                // Auto-close the alert after 5 seconds
+                setTimeout(function () {
+                    $("#reservation-success-alert").alert("close");
+                }, 5000);
+            });
+        </script>
+    }
+
+    <nav class="navbar bg-body-tertiary">
+        <div class="container-fluid">
+            <h2>Browse Books</h2>
+            <form asp-action="Browse">
+                <div class="input-group md-form form-sm form-2 pl-0">
+                    <input name="Title" class="form-control my-0 py-1 red-border" type="text" placeholder="Search" />
+
+                    <button class="btn btn-outline-success" id="basic-text1" type="submit">Search</button>
+
+                </div>
+            </form>
+        </div>
+    </nav>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Title)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Author)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Description)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Author)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Description)
+                    </td>
+                    <td>
+                        <a asp-action="MakeReservation" asp-controller="BookModels1" asp-route-id="@item.BookID"><button type="button" class="btn btn-primary btn-sm">Reserve</button></a>
+                        <a asp-action="ViewBook" asp-controller="BookModels1" asp-route-id="@item.BookID"><button type="button" class="btn btn-primary btn-sm">Details</button></a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @section scripts{
+    <script>
+        $(function () {
+            $("#basic-text1").click(function () {
+                $("form").submit();
+            })
+        })
+    </script>
+}
+}
